@@ -1,0 +1,6 @@
+# This directory contains processed datasets and intermediate files.
+# These files are gitignored to avoid bloating the repository.
+#
+# Expected contents after running data processing:
+# - ultrachat_sft.json: Processed UltraChat data for SFT
+# - pku_grpo.json: Processed PKU-SafeRLHF data for GRPO
