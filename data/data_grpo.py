@@ -13,7 +13,6 @@ You will implement:
 """
 
 # TODO: Implement data processing functions
-# Reference: ipynb/finetune.py (process_ultrachat_to_sft)
 # Reference: ipynb/alignment.py (process_pku_to_grpo)
 
 pass

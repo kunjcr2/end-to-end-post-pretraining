@@ -14,4 +14,13 @@ Usage:
 # - Initialize configs from config/ module
 # - Call training function from src.train
 
-pass
+import argparse
+from config import SFTTrainingConfig, SFTLoRAConfig, DataConfig
+from src import train
+
+sft_training_config = SFTTrainingConfig()
+sft_lora_config = SFTLoRAConfig()
+data_config = DataConfig()
+
+if __name__ == "__main__":
+    pass
