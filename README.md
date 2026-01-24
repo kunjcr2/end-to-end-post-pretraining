@@ -6,13 +6,13 @@ A complete, production-style pipeline for LLM post-pretraining covering **Superv
 
 ---
 
-## 🔗 Model Checkpoints
+## Model Checkpoints
 
 **HuggingFace**: *To be added*
 
 ---
 
-## 🏗️ Pipeline Overview
+## Pipeline Overview
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
@@ -37,7 +37,7 @@ A complete, production-style pipeline for LLM post-pretraining covering **Superv
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Component | Details |
 |-----------|---------|
@@ -51,7 +51,7 @@ A complete, production-style pipeline for LLM post-pretraining covering **Superv
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 end-to-end-post-pretraining/
@@ -82,7 +82,7 @@ end-to-end-post-pretraining/
 
 ---
 
-## 📊 Sample Outputs
+## Sample Outputs
 
 *Sample outputs will be added soon.*
 
@@ -92,7 +92,7 @@ end-to-end-post-pretraining/
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -134,6 +134,24 @@ print(response)
 
 ---
 
-## 📝 License
+## vLLM-Powered API (Docker)
+
+*To be added*
+
+The project includes a containerized Flask API powered by vLLM for high-performance inference serving.
+
+```bash
+# Build the Docker image
+docker build -t llm-post-pretraining-api -f docker/Dockerfile .
+
+# Run the API server
+docker run -p 5000:5000 --gpus all llm-post-pretraining-api
+```
+
+**API Endpoints**: *To be added*
+
+---
+
+## License
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
