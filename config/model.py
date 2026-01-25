@@ -6,6 +6,7 @@ and checkpoint paths. Supports environment variable overrides for flexibility.
 """
 
 import os
+from typing import List, Dict
 
 
 class ModelConfig:
@@ -37,9 +38,11 @@ class ModelConfig:
 
 
 class SpecialTokens:
-    """Special tokens used for chat format. Add these in your code."""
-    # TODO: Add these manually - format is angle bracket + pipe + name + pipe + angle bracket
-    # eos_token = "endoftext token"
-    # user_token = "user token"  
-    # assistant_token = "assistant token"
-    pass
+    """Special tokens used for chat format."""
+    
+    @staticmethod
+    def get_special_tokens():
+        return {
+            "eos_token": "<|endoftext|>",
+            "additional_special_tokens": ["<|user|>", "<|assistant|>"]
+        }

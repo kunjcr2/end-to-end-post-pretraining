@@ -2,15 +2,16 @@
 Data processing utilities for training datasets.
 
 This file exists to handle all data loading, preprocessing, and formatting
-for both SFT and GRPO training stages. It converts raw datasets from
+for SFT training stages. It converts raw datasets from
 HuggingFace into the format expected by the training scripts.
 
 You will implement:
 - process_ultrachat_to_sft: Convert UltraChat to single-turn SFT format
-- process_pku_to_grpo: Convert PKU-SafeRLHF to GRPO format
 - Tokenization and dataset creation utilities
 - Train/validation splitting
 """
+
+##### DONE #####
 
 # TODO: Implement data processing functions
 # Reference: ipynb/finetune.py (process_ultrachat_to_sft)
@@ -22,6 +23,8 @@ from pathlib import Path
 from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer
 
+from src.tokenizer import Tokenizer
+
 class DataSFT:
     
     """
@@ -32,7 +35,7 @@ class DataSFT:
         self.data_config = data_config
         self.model_config = model_config
         
-        self.tokenizer = AutoTokenizer.from_pretrained(model_config.model_base)
+        self.tokenizer = Tokenizer(model_config).get_tokenizer()
         self.dataset = load_dataset(self.data_config.ds_sft, split="train")
 
     def process_ultrachat_to_sft(self):
