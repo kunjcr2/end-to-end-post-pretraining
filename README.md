@@ -8,7 +8,8 @@ A complete, production-style pipeline for LLM post-pretraining covering **Superv
 
 ## Model Checkpoints
 
-**HuggingFace**: *To be added*
+**HuggingFace**: https://huggingface.co/kunjcr2/stablelm-1.6b-finetuned-aligned <br>
+**WandB**: https://wandb.ai/kunjcr2-dreamable/huggingface/runs/qds5kqi2?nw=nwuserkunjcr2
 
 ---
 
