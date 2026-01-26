@@ -1,4 +1,22 @@
+# Core ML/DL
+torch
+transformers
+datasets
+accelerate
+
+# Parameter-efficient fine-tuning
+peft
+
+# Training utilities
+trl
+
+# Data processing
 pandas
-matplotlib
 numpy
+
+# Experiment tracking
+wandb
+
+# Utilities
 scikit-learn
+matplotlib
