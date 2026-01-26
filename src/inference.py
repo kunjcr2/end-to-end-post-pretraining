@@ -15,4 +15,28 @@ You will implement:
 # TODO: Implement inference utilities
 # Reference: ipynb/finetune.py (generate_response function)
 
-pass
+from flask import Flask, request, jsonify
+
+# need vLLM
+from vllm import LLM, SamplingParams
+
+# prompt
+# POST /ask
+# {
+#     "messages": [
+#         {
+#             "role": "user",
+#             "content": "Hello, how are you?"
+#         }
+#     ]
+# }
+# Add it to the system prompt
+
+# sampling params
+params = SamplingParams()  # add params for infernce
+
+# Load LLM from huggingface
+llm = LLM() # Add model from hugginface
+
+# generate output
+outputs = llm.generate()
