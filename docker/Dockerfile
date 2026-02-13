@@ -1,18 +1,27 @@
-# Dockerfile for End-to-End LLM Post-Pretraining API
+# Dockerfile for StableLM Inference API
 #
-# This file exists to containerize the Flask API with vLLM for production
-# inference serving. It packages the trained model and provides a REST API
-# for generating responses.
+# FastAPI + vLLM powered inference server for the fine-tuned
+# and aligned StableLM 1.6B model.
 #
 # Build:
-#   docker build -t llm-post-pretraining-api -f docker/Dockerfile .
+#   docker build -t stablelm-api -f docker/Dockerfile .
 #
 # Run:
-#   docker run -p 5000:5000 --gpus all llm-post-pretraining-api
+#   docker run -p 8000:8000 --gpus all stablelm-api
 
-# TODO: Implement Dockerfile
-# - Base image with CUDA support
-# - Install dependencies from requirements.txt
-# - Copy source code and model configs
-# - Set up vLLM serving
-# - Expose Flask API endpoint
+FROM vllm/vllm-openai:latest
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy API source code
+COPY api/ ./api/
+
+# Expose the API port
+EXPOSE 8000
+
+# Start the inference server
+CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]

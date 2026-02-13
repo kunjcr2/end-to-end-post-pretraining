@@ -25,16 +25,16 @@ class ModelConfig:
     # Checkpoint paths - can be overridden via environment variables
     sft_checkpoint_path: str = os.getenv(
         "SFT_CHECKPOINT_PATH",
-        "/content/drive/MyDrive/checkpoint-2079"
+        "./sft"
     )
     grpo_checkpoint_path: str = os.getenv(
         "GRPO_CHECKPOINT_PATH",
-        "./stablelm-grpo/checkpoint-44"
+        "./grpo"
     )
     
     # Output directories
-    sft_output_dir: str = "./stablelm-sft"
-    grpo_output_dir: str = "./stablelm-grpo"
+    sft_output_dir: str = "./sft"
+    grpo_output_dir: str = "./grpo"
 
 
 class SpecialTokens:

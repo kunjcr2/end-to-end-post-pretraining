@@ -14,7 +14,7 @@ class SFTTrainingConfig:
     """Training arguments for Supervised Fine-Tuning stage."""
     
     # Output
-    output_dir: str = "./stablelm-sft"
+    output_dir: str = "./sft"
     run_name: str = "stablelm-1.5b-sft-final"
     
     # Training duration
@@ -90,7 +90,7 @@ class GRPOTrainingConfig:
     """Training arguments for GRPO alignment stage."""
     
     # Output
-    output_dir: str = "./stablelm-grpo"
+    output_dir: str = "./grpo"
     
     # Training duration
     num_train_epochs: int = 2

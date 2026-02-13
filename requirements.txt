@@ -1,22 +1,9 @@
-# Core ML/DL
+# Inference
 torch
 transformers
-datasets
-accelerate
+vllm
 
-# Parameter-efficient fine-tuning
-peft
-
-# Training utilities
-trl
-
-# Data processing
-pandas
-numpy
-
-# Experiment tracking
-wandb
-
-# Utilities
-scikit-learn
-matplotlib
+# API
+fastapi
+uvicorn
+pydantic

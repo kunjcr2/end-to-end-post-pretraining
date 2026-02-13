@@ -1,44 +1,45 @@
 # End-to-End LLM Post-Pretraining Pipeline
 
-A complete, production-style pipeline for LLM post-pretraining covering **Supervised Fine-Tuning (SFT)** and **GRPO Alignment**. This is a learning/portfolio project demonstrating the full workflow from data preprocessing to model alignment.
+A complete pipeline for LLM post-pretraining covering **Supervised Fine-Tuning (SFT)** and **GRPO Alignment**, built on StableLM 1.6B.
 
-> **Note**: This is a learning project. The trained models are not production-grade but serve to demonstrate the complete pipeline.
-
----
-
-## Model Checkpoints
-
-**HuggingFace**: https://huggingface.co/kunjcr2/stablelm-1.6b-finetuned-aligned <br>
-**WandB**: https://wandb.ai/kunjcr2-dreamable/huggingface/runs/qds5kqi2?nw=nwuserkunjcr2
+> **Note**: The model has been trained and the weights are hosted on HuggingFace. This repo now serves as the **inference API** and a **reference** for the training process.
 
 ---
 
-## Pipeline Overview
+## Model Weights
+
+**HuggingFace**: [kunjcr2/stablelm-1.6b-finetuned-aligned](https://huggingface.co/kunjcr2/stablelm-1.6b-finetuned-aligned)
+
+---
+
+## Training Pipeline (Completed)
+
+The model was post-pretrained in two stages:
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Base Model    │────▶│   SFT Model     │────▶│  Aligned Model  │
-│  (StableLM 1.6B)│     │   (LoRA + SFT)  │     │    (GRPO)       │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-   Pre-trained LLM      Instruction-tuned       Safety-aligned
-                         on UltraChat           with Reward Model
++-------------------+     +-------------------+     +-------------------+
+|   Base Model      |---->|   SFT Model       |---->|  Aligned Model    |
+|  (StableLM 1.6B)  |     |   (LoRA + SFT)    |     |    (GRPO)         |
++-------------------+     +-------------------+     +-------------------+
+         |                         |                         |
+         v                         v                         v
+   Pre-trained LLM        Instruction-tuned         Safety-aligned
+                           on UltraChat            with Reward Model
 ```
 
 ### Stage 1: Supervised Fine-Tuning (SFT)
-- Fine-tune the base model on instruction-following data
-- Uses **LoRA** (r=256) for parameter-efficient training
+- Fine-tuned the base model on instruction-following data
+- Used **LoRA** (r=256) for parameter-efficient training
 - Dataset: UltraChat 200K conversations
+- Reference: [`ipynb/finetune.py`](ipynb/finetune.py)
 
 ### Stage 2: GRPO Alignment
-- Align the SFT model using Group Relative Policy Optimization
-- Uses a **reward model** to score responses
+- Aligned the SFT model using Group Relative Policy Optimization
+- Used a **reward model** to score responses
 - Dataset: PKU-SafeRLHF for safety alignment
+- Reference: [`ipynb/alignment.py`](ipynb/alignment.py)
 
----
-
-## Tech Stack
+### Tech Stack Used for Training
 
 | Component | Details |
 |-----------|---------|
@@ -52,50 +53,32 @@ A complete, production-style pipeline for LLM post-pretraining covering **Superv
 
 ---
 
-## Project Structure
+## Inference API
+
+The repo includes a **FastAPI + vLLM** inference server that loads the model from HuggingFace.
+
+### Project Structure
 
 ```
 end-to-end-post-pretraining/
+├── api/                    # Inference API
+│   ├── app.py              # FastAPI + vLLM server
+│   └── schema.py           # Request/response models
 ├── config/                 # Configuration classes
-│   ├── __init__.py
-│   ├── model.py           # Model paths and checkpoints
-│   ├── lora.py            # LoRA hyperparameters
-│   ├── training.py        # Training arguments
-│   └── data.py            # Dataset configs
-├── src/                   # Core source code
-│   ├── __init__.py
-│   ├── train.py           # SFT training logic
-│   ├── align.py           # GRPO alignment logic
-│   ├── inference.py       # Model inference utilities
-│   └── data_processing.py # Data loading and preprocessing
-├── scripts/               # CLI scripts
-│   ├── run_sft.py         # Launch SFT training
-│   └── run_grpo.py        # Launch GRPO alignment
-├── docker/                # Containerization
-│   └── Dockerfile         # Flask API + vLLM setup
-├── data/                  # Processed datasets (gitignored)
-├── ipynb/                 # Reference notebooks
-│   ├── finetune.py        # SFT training reference
-│   └── alignment.py       # GRPO training reference
+│   ├── model.py            # Model paths and checkpoints
+│   ├── lora.py             # LoRA hyperparameters
+│   ├── training.py         # Training arguments
+│   └── data.py             # Dataset configs
+├── ipynb/                  # Training reference scripts
+│   ├── finetune.py         # SFT training reference
+│   └── alignment.py        # GRPO alignment reference
+├── docker/                 # Containerization
+│   └── Dockerfile          # FastAPI + vLLM setup
 ├── requirements.txt
 └── .env.example
 ```
 
----
-
-## Sample Outputs
-
-*Sample outputs will be added soon.*
-
-| Prompt | Base Model | SFT Model | Aligned Model |
-|--------|------------|-----------|---------------|
-| *TBD* | *TBD* | *TBD* | *TBD* |
-
----
-
-## Quick Start
-
-### Installation
+### Quick Start
 
 ```bash
 git clone https://github.com/yourusername/end-to-end-post-pretraining.git
@@ -103,53 +86,38 @@ cd end-to-end-post-pretraining
 pip install -r requirements.txt
 ```
 
-### Configuration
+```bash
+# Run the inference server
+uvicorn api.app:app --reload --port 8000
+```
 
-Copy the example environment file and update paths:
+### API Endpoints
+
+**Health Check**
+```
+GET /health
+```
+
+**Query the Model**
+```
+POST /query
+Content-Type: application/json
+
+{
+    "query": "What are some common misconceptions about AI?",
+    "max_tokens": 512,
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "top_k": 50
+}
+```
+
+### Docker (Coming Soon)
 
 ```bash
-cp .env.example .env
+docker build -t stablelm-api -f docker/Dockerfile .
+docker run -p 8000:8000 --gpus all stablelm-api
 ```
-
-### Training
-
-```bash
-# Stage 1: Supervised Fine-Tuning
-python scripts/run_sft.py
-
-# Stage 2: GRPO Alignment
-python scripts/run_grpo.py
-```
-
-### Inference
-
-```python
-from src.inference import generate_response
-
-response = generate_response(
-    prompt="What are some common misconceptions about AI?",
-    model_type="aligned"  # or "base", "sft"
-)
-print(response)
-```
-
----
-
-## vLLM-Powered API (Docker)
-
-*To be added*
-
-The project includes a containerized Flask API powered by vLLM for high-performance inference serving.
-
-```bash
-# Build the Docker image
-docker build -t llm-post-pretraining-api -f docker/Dockerfile .
-
-# Run the API server
-docker run -p 5000:5000 --gpus all llm-post-pretraining-api
-```
-
-**API Endpoints**: *To be added*
 
 ---
 
