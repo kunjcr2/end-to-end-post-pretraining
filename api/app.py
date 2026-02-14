@@ -1,11 +1,18 @@
 """
 FastAPI + vLLM Inference Server
 
-Serves the fine-tuned StableLM model from HuggingFace using vLLM
-for high-performance inference.
+Serves the fine-tuned & aligned StableLM 1.6B model via vLLM for
+high-throughput, low-latency text generation.
 
-Run:
+The model weights are pulled from HuggingFace at startup:
+  https://huggingface.co/kunjcr2/stablelm-1.6b-finetuned-aligned
+
+Run locally:
     uvicorn api.app:app --reload --port 8000
+
+Run via Docker:
+    docker build -t stablelm-api -f docker/Dockerfile .
+    docker run -p 8000:8000 --gpus all stablelm-api
 """
 
 import os
@@ -14,57 +21,9 @@ from vllm import LLM, SamplingParams
 from schema import QueryRequest, QueryResponse
 
 # --- Config -----------------------------------------------------------------
+# MODEL_ID can be overridden at deploy time with the HF_MODEL_ID env var.
+# Default points to the fine-tuned + GRPO-aligned checkpoint on HuggingFace.
 MODEL_ID = os.getenv("HF_MODEL_ID", "kunjcr2/stablelm-1.6b-finetuned-aligned")
-USER_TOKEN = "<|user|>"
-ASSISTANT_TOKEN = "<|assistant|>"
-EOT_TOKEN = "<|endoftext|>"
 
-# --- App --------------------------------------------------------------------
-app = FastAPI(
-    title="StableLM Inference API",
-    description="vLLM-powered inference for the fine-tuned and aligned StableLM 1.6B model.",
-    version="1.0.0",
-)
-
-# --- Model (loaded once at startup) ----------------------------------------
-llm: LLM | None = None
-
-@app.on_event("startup")
-async def load_model():
-    global llm
-    llm = LLM(model=MODEL_ID, trust_remote_code=True)
-
-# --- Routes -----------------------------------------------------------------
-@app.get("/health")
-def health_check():
-    return {"status": "healthy", "model": MODEL_ID}
-
-@app.post("/query", response_model=QueryResponse)
-def query_model(req: QueryRequest):
-    """Generate a response from the model."""
-
-    sampling_params = SamplingParams(
-        temperature=req.temperature,
-        top_p=req.top_p,
-        top_k=req.top_k,
-        max_tokens=req.max_tokens,
-    )
-
-    # Format prompt with special tokens used during training
-    formatted_prompt = f"{USER_TOKEN}\n{req.query}\n{ASSISTANT_TOKEN}\n"
-
-    # TODO: Add tokenization before passing in.
-    tokenized_prompt = []
-
-    outputs = llm.generate(tokenized_prompt, sampling_params)
-    generated_text = outputs[0].outputs[0].text
-
-    # Strip trailing EOT token if present
-    if generated_text.endswith(EOT_TOKEN):
-        generated_text = generated_text[: -len(EOT_TOKEN)].strip()
-
-    return QueryResponse(
-        query=req.query,
-        response=generated_text,
-        tokens=len(outputs[0].outputs[0].token_ids),
-    )
+# Special tokens — must match what the model was trained with (see config/model.py).
+USER_TOKEN = "
