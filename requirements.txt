@@ -7,3 +7,5 @@ vllm
 fastapi
 uvicorn
 pydantic
+psycopg2
+dotenv
