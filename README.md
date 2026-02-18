@@ -119,6 +119,18 @@ docker build -t stablelm-api -f docker/Dockerfile .
 docker run -p 8000:8000 --gpus all stablelm-api
 ```
 
+### Backend Demo
+
+The `backend_demo/` directory contains a standalone FastAP + PostgreSQL CRUD application. This serves as a learning exercise and reference implementation for:
+- SQLAlchemy ORM with Pydantic V2
+- Context-manager based session handling
+- Basic CRUD operations (Create, Read, Update, Delete)
+
+To run the demo:
+```bash
+uvicorn backend_demo.app.fastapiSqlalchemy:app --reload
+```
+
 ---
 
 ## License

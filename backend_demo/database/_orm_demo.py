@@ -23,8 +23,8 @@ url_obj = URL.create(
 )
 engine = create_engine(url_obj) # Creates an engine (Doesnt connect yet)
 
-### GETTING ALL/SOME posts, UPDATING POSTS
-# Makes a connection with a session and exectures the statement
+# ### GETTING ALL/SOME posts, UPDATING POSTS
+# # Makes a connection with a session and exectures the statement
 # stmt = text("SELECT * FROM posts WHERE id>2") # This shows a textual SQL query
 # with Session(engine) as s:
 #     res = s.execute(stmt)
@@ -74,6 +74,7 @@ posts = [
     Post(title="Post 2", content="Content 2", published=True),
     Post(title="Post 3", content="Content 3", published=True)
 ]
+# Adding
 for post in posts:
     session.add(post)
     session.flush()
