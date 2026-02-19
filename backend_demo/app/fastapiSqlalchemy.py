@@ -1,7 +1,14 @@
-# FastAPI CRUD Demo — REST API for posts backed by PostgreSQL
-# Part of the FastAPI + PostgreSQL + CI/CD course
+# FastAPI CRUD Demo — REST API for posts & users backed by PostgreSQL
 # Connected to PostgreSQL via SQLAlchemy ORM
-# Endpoints: health check, get/create/update/delete posts
+#
+# Endpoints:
+#   GET    /health          — health check
+#   GET    /posts           — list all posts
+#   GET    /posts/{id}      — get a single post
+#   POST   /posts           — create a post
+#   PUT    /posts/{id}      — update a post
+#   DELETE /posts/{id}      — delete a post
+#   POST   /users           — register a new user (email validated via EmailStr)
 #
 # This file uses SQLAlchemy ORM with Pydantic V2 models.
 # Database interactions are handled via context managers in database.py
@@ -14,7 +21,7 @@
 from fastapi import FastAPI, HTTPException, status, Response
 from typing import List
 
-from backend_demo.database.schema import Posts
+from backend_demo.database.schema import Posts, UserCreate, UserSent
 import backend_demo.database.database as db
 import time
 
@@ -85,7 +92,7 @@ def update_post(id: int, post: Posts):
         )
     return res
 
-# DELETE a post — removes from list; will become a SQL DELETE later
+# DELETE a post — removes from DB via SQLAlchemy session.delete()
 @app.delete("/posts/{id}", status_code=status.HTTP_200_OK, response_model=Posts)
 def delete_post(id: int):
 
@@ -96,3 +103,18 @@ def delete_post(id: int):
             detail=f"Post with id: {id} was not found"
         )
     return res
+
+# Register a new user — returns 400 if the email is already taken
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=UserSent)
+def create_user(user: UserCreate):
+    res = db.create_user(user)
+    if not res:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User with email: {user.email} already exists"
+        )
+    return {
+        "id": res.id,
+        "email": res.email,
+        "created_at": res.created_at
+    }

@@ -121,10 +121,13 @@ docker run -p 8000:8000 --gpus all stablelm-api
 
 ### Backend Demo
 
-The `backend_demo/` directory contains a standalone FastAP + PostgreSQL CRUD application. This serves as a learning exercise and reference implementation for:
-- SQLAlchemy ORM with Pydantic V2
+The `backend_demo/` directory contains a standalone FastAPI + PostgreSQL CRUD application for **posts** and **users**. This serves as a learning exercise and reference implementation for:
+- SQLAlchemy ORM with Pydantic V2 (Post & User models)
 - Context-manager based session handling
-- Basic CRUD operations (Create, Read, Update, Delete)
+- Full CRUD operations for posts (Create, Read, Update, Delete)
+- User registration with **EmailStr** validation (`pydantic[email]`) and duplicate-email guard
+
+See [`backend_demo/README.md`](backend_demo/README.md) for full endpoint documentation.
 
 To run the demo:
 ```bash
