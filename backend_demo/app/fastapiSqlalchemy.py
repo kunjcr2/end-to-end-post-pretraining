@@ -11,7 +11,8 @@
 # The patterns here — Pydantic models, route structure, status codes — carry
 # over directly to the inference server.
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Response
+from typing import List
 
 from backend_demo.database.schema import Posts
 import backend_demo.database.database as db
@@ -43,7 +44,7 @@ def check_health():
 
 
 # GET all posts — later: paginate with query params (limit, offset)
-@app.get("/posts", status_code=status.HTTP_200_OK)
+@app.get("/posts", status_code=status.HTTP_200_OK, response_model=List[Posts])
 def get_posts():
     
     res = db.get_all_posts()
@@ -51,7 +52,7 @@ def get_posts():
 
 
 # GET single post by ID — uses path parameter, returns [] if missing
-@app.get("/posts/{id}", status_code=status.HTTP_200_OK)
+@app.get("/posts/{id}", status_code=status.HTTP_200_OK, response_model=Posts)
 def get_post(id: int):
 
     res = db.get_post_by_id(id)
@@ -65,7 +66,7 @@ def get_post(id: int):
 
 
 # CREATE a new post — PostgreSQL has auto-increment for ID
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=Posts)
 def create_post(post: Posts):
 
     res = db.create_post(post)
@@ -73,14 +74,19 @@ def create_post(post: Posts):
 
 
 # UPDATE an existing post — full replacement (PUT semantics)
-@app.put("/posts/{id}", status_code=status.HTTP_201_CREATED)
+@app.put("/posts/{id}", status_code=status.HTTP_201_CREATED, response_model=Posts)
 def update_post(id: int, post: Posts):
 
-    pass
-
+    res = db.update_post(id, post)
+    if not res:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Post with id: {id} was not found"
+        )
+    return res
 
 # DELETE a post — removes from list; will become a SQL DELETE later
-@app.delete("/posts/{id}", status_code=status.HTTP_200_OK)
+@app.delete("/posts/{id}", status_code=status.HTTP_200_OK, response_model=Posts)
 def delete_post(id: int):
 
     res = db.delete_post(id)

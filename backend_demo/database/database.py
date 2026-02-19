@@ -7,7 +7,7 @@
 # - Context managers (with Session(...) as session) for thread-safe session management
 # - Automatic table creation on connection check
 
-from sqlalchemy import create_engine, URL, Integer, Boolean, String, TIMESTAMP, func
+from sqlalchemy import create_engine, URL, Integer, Boolean, String, TIMESTAMP, func, select
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session, mapped_column, DeclarativeBase
 from backend_demo.database.schema import Posts
@@ -63,19 +63,20 @@ def check_connection():
         return False
 
 def get_all_posts():
-    with Session(_engine) as session:
-        posts = session.query(Post).all()
+    with Session(_engine, expire_on_commit=False) as session:
+        stmt = select(Post)
+        posts = session.execute(stmt).scalars().all()
         return posts
 
 def get_post_by_id(id):
-    with Session(_engine) as session:
-        post = session.query(Post).where(Post.id == id).first()
+    with Session(_engine, expire_on_commit=False) as session:
+        post = session.get(Post, id)
         if not post:
             return None
         return post
 
 def create_post(post: Posts):
-    with Session(_engine) as session:
+    with Session(_engine, expire_on_commit=False) as session:
         new_post = Post(
             title=post.title,
             content=post.content,
@@ -87,16 +88,38 @@ def create_post(post: Posts):
         return new_post
 
 def update_post(id: int, post: Posts):
-    pass
+    with Session(_engine, expire_on_commit=False) as session:
+        old_post = session.get(Post, id)
+        if not old_post:
+            return None
+        
+        if post.title is not None:
+            old_post.title = post.title
+        
+        if post.content is not None:
+            old_post.content = post.content
+        
+        if post.published is not None:
+            old_post.published = post.published
+        
+        session.commit()
+        session.refresh(old_post)
+        return old_post
 
 def delete_post(id: int):
-    with Session(_engine) as session:
-        post = session.query(Post).where(Post.id == id).first()
+    with Session(_engine, expire_on_commit=False) as session:
+        post = session.get(Post, id)
         if not post:
             return None
         
-        # Convert to Pydantic model before deleting if we want to return it
-        deleted_post_data = post
+        # Create a dictionary of the post data to return
+        deleted_post_data = {
+            "id": post.id,
+            "title": post.title,
+            "content": post.content,
+            "published": post.published,
+            "created_at": post.created_at
+        }
         
         session.delete(post)
         session.commit()

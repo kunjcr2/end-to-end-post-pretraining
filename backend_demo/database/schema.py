@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 class Posts(BaseModel):
     id: int = None
@@ -6,6 +6,5 @@ class Posts(BaseModel):
     content: str
     published: bool = True
 
-    # Lets the orm model use this non mapped pydantic model as a mapped orm model
-    class Config:
-        orm_mode = True
+    # Pydantic V2: from_attributes=True lets FastAPI serialize SQLAlchemy ORM objects
+    model_config = ConfigDict(from_attributes=True)
