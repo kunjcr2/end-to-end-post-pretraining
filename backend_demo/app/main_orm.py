@@ -1,28 +1,26 @@
-# FastAPI CRUD Demo — REST API for posts & users backed by PostgreSQL
+# FastAPI CRUD Demo — App entry point
 # Connected to PostgreSQL via SQLAlchemy ORM
 #
-# Endpoints:
-#   GET    /health          — health check
-#   GET    /posts           — list all posts
-#   GET    /posts/{id}      — get a single post
-#   POST   /posts           — create a post
-#   PUT    /posts/{id}      — update a post
-#   DELETE /posts/{id}      — delete a post
-#   POST   /users           — register a new user (email validated via EmailStr)
+# This file creates the FastAPI app instance, establishes the DB connection,
+# and mounts route modules via include_router():
+#   - routes/posts.py  → /posts CRUD endpoints
+#   - routes/users.py  → /users registration & lookup
 #
-# This file uses SQLAlchemy ORM with Pydantic V2 models.
-# Database interactions are handled via context managers in database.py
+# The /health endpoint is kept here as a top-level check.
+#
+# Database interactions are handled in utils/query_db.py using context-managed
+# sessions from database/database.py (SQLAlchemy ORM + Pydantic V2).
 #
 # This file is a standalone learning exercise separate from the inference API
 # (see api/app.py for the actual vLLM-powered model serving endpoint).
 # The patterns here — Pydantic models, route structure, status codes — carry
 # over directly to the inference server.
 
-from fastapi import FastAPI, HTTPException, status, Response
-from typing import List
+from fastapi import FastAPI, status
 import time
 
-from backend_demo.database.schema import Posts, UserCreate, UserSent
+import backend_demo.routes.posts as posts
+import backend_demo.routes.users as users
 import backend_demo.utils.query_db as db
 
 # building the connection to the db
@@ -38,93 +36,15 @@ while True:
         print("Trying connection in 3 seconds...")
         time.sleep(3)
 
-
 # --- App instance ----------------------------------------------------------------
 app = FastAPI()
 
 # --- Routes ----------------------------------------------------------------------
 
 # Health check — same pattern used in api/app.py for the inference server
-@app.get("/health")
+@app.get("/health", status_code=status.HTTP_200_OK)
 def check_health():
     return {"message": "healthy"}
 
-
-# GET all posts — later: paginate with query params (limit, offset)
-@app.get("/posts", status_code=status.HTTP_200_OK, response_model=List[Posts])
-def get_posts():
-    
-    res = db.get_all_posts()
-    return res
-
-
-# GET single post by ID — uses path parameter, returns [] if missing
-@app.get("/posts/{id}", status_code=status.HTTP_200_OK, response_model=Posts)
-def get_post(id: int):
-
-    res = db.get_post_by_id(id)
-
-    if not res:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Post with id: {id} was not found"
-        )
-    return res
-
-
-# CREATE a new post — PostgreSQL has auto-increment for ID
-@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=Posts)
-def create_post(post: Posts):
-
-    res = db.create_post(post)
-    return res
-
-
-# UPDATE an existing post — full replacement (PUT semantics)
-@app.put("/posts/{id}", status_code=status.HTTP_201_CREATED, response_model=Posts)
-def update_post(id: int, post: Posts):
-
-    res = db.update_post(id, post)
-    if not res:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Post with id: {id} was not found"
-        )
-    return res
-
-# DELETE a post — removes from DB via SQLAlchemy session.delete()
-@app.delete("/posts/{id}", status_code=status.HTTP_200_OK, response_model=Posts)
-def delete_post(id: int):
-
-    res = db.delete_post(id)
-    if not res:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Post with id: {id} was not found"
-        )
-    return res
-
-# Register a new user — returns 400 if the email is already taken
-@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=UserSent)
-def create_user(user: UserCreate):
-    res = db.create_user(user)
-    if not res:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"User with email: {user.email} already exists"
-        )
-    return {
-        "id": res.id,
-        "email": res.email,
-        "created_at": res.created_at
-    }
-
-@app.get("/users/{id}", status_code=status.HTTP_200_OK, response_model=UserSent)
-def get_user(id: int):
-    res = db.get_user_by_id(id)
-    if not res:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with id: {id} was not found"
-        )
-    return res
+app.include_router(posts.router)
+app.include_router(users.router)

@@ -1,6 +1,7 @@
 # Backend Demo — FastAPI + PostgreSQL CRUD
 
 A standalone REST API for **posts** and **users**, built with FastAPI, SQLAlchemy ORM, and Pydantic V2.
+Routes are organized into dedicated modules under `routes/` and mounted via `include_router()`.
 
 ---
 
@@ -30,6 +31,7 @@ uvicorn backend_demo.app.main_orm:app --reload
 | `PUT` | `/posts/{id}` | Update a post |
 | `DELETE` | `/posts/{id}` | Delete a post |
 | `POST` | `/users` | Register a new user |
+| `GET` | `/users/{id}` | Get a user by ID |
 
 ### POST /users
 
@@ -50,12 +52,15 @@ uvicorn backend_demo.app.main_orm:app --reload
 ```
 backend_demo/
 ├── app/
-│   ├── main_orm.py            # FastAPI routes (SQLAlchemy ORM)
-│   └── main_psycopg2.py       # FastAPI routes (raw psycopg2)
+│   └── main_orm.py            # App entry point — creates FastAPI instance, mounts routers
+├── routes/
+│   ├── posts.py               # /posts CRUD endpoints (APIRouter)
+│   └── users.py               # /users registration & lookup (APIRouter)
 ├── database/
-│   ├── database.py            # SQLAlchemy engine, ORM models, CRUD functions
+│   ├── database.py            # SQLAlchemy engine, ORM models (Post, User)
 │   └── schema.py              # Pydantic V2 request/response schemas
 ├── utils/
+│   ├── query_db.py            # All DB queries (context-managed sessions)
 │   └── hash.py                # Password hashing utility
 ├── .env                       # PostgreSQL credentials (not committed)
 ├── requirements.txt
@@ -66,9 +71,9 @@ backend_demo/
 
 ## Key Design Decisions
 
-- **Two implementation approaches** — `main_orm.py` uses SQLAlchemy ORM (recommended), while `main_psycopg2.py` shows the same API built with raw SQL via psycopg2.
+- **Router-based architecture** — routes are split into `routes/posts.py` and `routes/users.py` using FastAPI's `APIRouter`, then mounted in `main_orm.py` via `app.include_router()`. This keeps the entry point lean and each resource self-contained.
 - **Multi-table auto-creation** — `make_table()` iterates a `TABLES` list and creates any missing tables on startup.
-- **Context-manager sessions** — every CRUD function opens its own `Session(...)` via a `with` block, ensuring connections are released immediately.
+- **Context-manager sessions** — every CRUD function in `utils/query_db.py` opens its own `Session(...)` via a `with` block, ensuring connections are released immediately.
 - **Duplicate-email guard** — `create_user()` catches the unique-constraint violation and returns `None`, which the route converts into a 400 response.
 - **EmailStr validation** — the `UserCreate` schema uses `pydantic[email]` to reject malformed email addresses at the request level.
 - **Safe response model** — `UserSent` omits the `password` field so it is never leaked in API responses.
