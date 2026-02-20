@@ -11,7 +11,7 @@ A standalone REST API for **posts** and **users**, built with FastAPI, SQLAlchem
 pip install -r backend_demo/requirements.txt
 
 # Run the server (from the repo root)
-uvicorn backend_demo.app.fastapiSqlalchemy:app --reload
+uvicorn backend_demo.app.main_orm:app --reload
 ```
 
 > The app requires a `.env` file in `backend_demo/` with your PostgreSQL credentials
@@ -50,10 +50,13 @@ uvicorn backend_demo.app.fastapiSqlalchemy:app --reload
 ```
 backend_demo/
 ├── app/
-│   └── fastapiSqlalchemy.py   # FastAPI routes & startup logic
+│   ├── main_orm.py            # FastAPI routes (SQLAlchemy ORM)
+│   └── main_psycopg2.py       # FastAPI routes (raw psycopg2)
 ├── database/
 │   ├── database.py            # SQLAlchemy engine, ORM models, CRUD functions
 │   └── schema.py              # Pydantic V2 request/response schemas
+├── utils/
+│   └── hash.py                # Password hashing utility
 ├── .env                       # PostgreSQL credentials (not committed)
 ├── requirements.txt
 └── README.md
@@ -63,11 +66,13 @@ backend_demo/
 
 ## Key Design Decisions
 
+- **Two implementation approaches** — `main_orm.py` uses SQLAlchemy ORM (recommended), while `main_psycopg2.py` shows the same API built with raw SQL via psycopg2.
 - **Multi-table auto-creation** — `make_table()` iterates a `TABLES` list and creates any missing tables on startup.
 - **Context-manager sessions** — every CRUD function opens its own `Session(...)` via a `with` block, ensuring connections are released immediately.
 - **Duplicate-email guard** — `create_user()` catches the unique-constraint violation and returns `None`, which the route converts into a 400 response.
 - **EmailStr validation** — the `UserCreate` schema uses `pydantic[email]` to reject malformed email addresses at the request level.
 - **Safe response model** — `UserSent` omits the `password` field so it is never leaked in API responses.
+- **Password hashing** — passwords are hashed via `utils/hash.py` before being stored.
 
 ---
 

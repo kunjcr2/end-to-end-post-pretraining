@@ -5,3 +5,4 @@ uvicorn
 python-dotenv
 SQLAlchemy
 pydantic[email]
+passlib[bcrypt]

@@ -20,10 +20,10 @@
 
 from fastapi import FastAPI, HTTPException, status, Response
 from typing import List
+import time
 
 from backend_demo.database.schema import Posts, UserCreate, UserSent
 import backend_demo.database.database as db
-import time
 
 # building the connection to the db
 while True:

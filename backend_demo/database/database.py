@@ -12,6 +12,8 @@ from sqlalchemy import create_engine, URL, Integer, Boolean, String, TIMESTAMP, 
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session, mapped_column, DeclarativeBase
 from backend_demo.database.schema import Posts, UserCreate
+from backend_demo.utils.hash import hash
+
 from dotenv import load_dotenv
 import os
 import pathlib
@@ -145,7 +147,7 @@ def create_user(user: UserCreate):
     with Session(_engine, expire_on_commit=False) as session:
         new_user = User(
             email=user.email,
-            password=user.password
+            password=hash(user.password)
         )
 
         try:
@@ -157,4 +159,4 @@ def create_user(user: UserCreate):
         session.refresh(new_user)
 
         return new_user
-
+        
