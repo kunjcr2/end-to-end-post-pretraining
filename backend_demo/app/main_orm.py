@@ -23,7 +23,7 @@ from typing import List
 import time
 
 from backend_demo.database.schema import Posts, UserCreate, UserSent
-import backend_demo.database.database as db
+import backend_demo.utils.query_db as db
 
 # building the connection to the db
 while True:
@@ -118,3 +118,13 @@ def create_user(user: UserCreate):
         "email": res.email,
         "created_at": res.created_at
     }
+
+@app.get("/users/{id}", status_code=status.HTTP_200_OK, response_model=UserSent)
+def get_user(id: int):
+    res = db.get_user_by_id(id)
+    if not res:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id: {id} was not found"
+        )
+    return res
