@@ -8,10 +8,10 @@ from typing import List
 import backend_demo.utils.query_db as db
 from backend_demo.database.schema import Posts
 
-router = APIRouter()
+router = APIRouter(prefix="/posts", tags=["Posts"])
 
 # GET all posts — later: paginate with query params (limit, offset)
-@router.get("/posts", status_code=status.HTTP_200_OK, response_model=List[Posts])
+@router.get("/", status_code=status.HTTP_200_OK, response_model=List[Posts])
 def get_posts():
     
     res = db.get_all_posts()
@@ -19,7 +19,7 @@ def get_posts():
 
 
 # GET single post by ID — uses path parameter, returns [] if missing
-@router.get("/posts/{id}", status_code=status.HTTP_200_OK, response_model=Posts)
+@router.get("/{id}", status_code=status.HTTP_200_OK, response_model=Posts)
 def get_post(id: int):
 
     res = db.get_post_by_id(id)
@@ -33,7 +33,7 @@ def get_post(id: int):
 
 
 # CREATE a new post — PostgreSQL has auto-increment for ID
-@router.post("/posts", status_code=status.HTTP_201_CREATED, response_model=Posts)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=Posts)
 def create_post(post: Posts):
 
     res = db.create_post(post)
@@ -41,7 +41,7 @@ def create_post(post: Posts):
 
 
 # UPDATE an existing post — full replacement (PUT semantics)
-@router.put("/posts/{id}", status_code=status.HTTP_201_CREATED, response_model=Posts)
+@router.put("/{id}", status_code=status.HTTP_201_CREATED, response_model=Posts)
 def update_post(id: int, post: Posts):
 
     res = db.update_post(id, post)
@@ -53,7 +53,7 @@ def update_post(id: int, post: Posts):
     return res
 
 # DELETE a post — removes from DB via SQLAlchemy session.delete()
-@router.delete("/posts/{id}", status_code=status.HTTP_200_OK, response_model=Posts)
+@router.delete("/{id}", status_code=status.HTTP_200_OK, response_model=Posts)
 def delete_post(id: int):
 
     res = db.delete_post(id)

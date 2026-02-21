@@ -6,10 +6,10 @@ from fastapi import status, APIRouter, HTTPException
 from backend_demo.database.schema import UserCreate, UserSent
 import backend_demo.utils.query_db as db
 
-router = APIRouter()
+router = APIRouter(prefix="/users", tags=["Users"])
 
 # Register a new user — returns 400 if the email is already taken
-@router.post("/users", status_code=status.HTTP_201_CREATED, response_model=UserSent)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserSent)
 def create_user(user: UserCreate):
     res = db.create_user(user)
     if not res:
@@ -23,7 +23,7 @@ def create_user(user: UserCreate):
         "created_at": res.created_at
     }
 
-@router.get("/users/{id}", status_code=status.HTTP_200_OK, response_model=UserSent)
+@router.get("/{id}", status_code=status.HTTP_200_OK, response_model=UserSent)
 def get_user(id: int):
     res = db.get_user_by_id(id)
     if not res:
