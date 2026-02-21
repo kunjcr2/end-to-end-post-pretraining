@@ -1,8 +1,10 @@
 from ..database.database import _engine, _Base, TABLES, Post, User
+
 from sqlalchemy import inspect, select
 from sqlalchemy.orm import Session
+
 from ..database.schema import Posts, UserCreate
-from ..utils.hash import hash
+from ..utils.hash import hash_password
 
 def make_table():
     """Iterate over TABLES and create any that don't exist yet."""
@@ -88,12 +90,15 @@ def delete_post(id: int):
         return deleted_post_data
 
 def create_user(user: UserCreate):
-    """Create a new user. Returns None if the email already exists (unique constraint)."""
+    """Create a new user with a bcrypt-hashed password.
+    Uses hash_password() from utils/hash.py — never Python's built-in hash().
+    Returns None if the email already exists (unique constraint violation).
+    """
 
     with Session(_engine, expire_on_commit=False) as session:
         new_user = User(
             email=user.email,
-            password=hash(user.password)
+            password=hash_password(user.password)
         )
 
         try:
@@ -106,9 +111,15 @@ def create_user(user: UserCreate):
 
         return new_user
         
-def get_user_by_id(id: int):
-    with Session(_engine) as session:
-        user = session.get(User, id)
-        if not user:
+def get_user_by_email(user: UserCreate):
+    """Look up a user by email using select().where() — not session.get(),
+    which only works for primary-key lookups.
+    Returns the User ORM object or None if not found.
+    """
+    with Session(_engine, expire_on_commit=False) as session:
+        stmt = select(User).where(User.email == user.email)
+        user = session.execute(stmt).scalars().first()
+        if user is None:
             return None
+
         return user

@@ -5,6 +5,7 @@
 # and mounts route modules via include_router():
 #   - routes/posts.py  → /posts CRUD endpoints
 #   - routes/users.py  → /users registration & lookup
+#   - routes/auth.py   → /login authentication (bcrypt + passlib)
 #
 # The /health endpoint is kept here as a top-level check.
 #
@@ -21,6 +22,7 @@ import time
 
 import backend_demo.routes.posts as posts
 import backend_demo.routes.users as users
+import backend_demo.routes.auth as auth
 import backend_demo.utils.query_db as db
 
 # building the connection to the db
@@ -48,3 +50,4 @@ def check_health():
 
 app.include_router(posts.router)
 app.include_router(users.router)
+app.include_router(auth.router)

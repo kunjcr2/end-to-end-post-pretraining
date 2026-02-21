@@ -1,6 +1,6 @@
 # Backend Demo — FastAPI + PostgreSQL CRUD
 
-A standalone REST API for **posts** and **users**, built with FastAPI, SQLAlchemy ORM, and Pydantic V2.
+A standalone REST API for **posts**, **users**, and **authentication**, built with FastAPI, SQLAlchemy ORM, and Pydantic V2.
 Routes are organized into dedicated modules under `routes/` and mounted via `include_router()`.
 
 ---
@@ -32,6 +32,7 @@ uvicorn backend_demo.app.main_orm:app --reload
 | `DELETE` | `/posts/{id}` | Delete a post |
 | `POST` | `/users` | Register a new user |
 | `GET` | `/users/{id}` | Get a user by ID |
+| `POST` | `/login` | Authenticate & get token |
 
 ### POST /users
 
@@ -45,6 +46,15 @@ uvicorn backend_demo.app.main_orm:app --reload
   ```
 - Returns **400** if the email is already registered.
 
+### POST /login
+
+- **Request body** — same `UserCreate` schema:
+  ```json
+  { "email": "user@example.com", "password": "secret" }
+  ```
+- Looks up the user by email, then verifies the plaintext password against the stored **bcrypt** hash using `passlib`'s `pwd_context.verify()`.
+- Returns **404** if the email is not found, **401** if the password doesn't match.
+
 ---
 
 ## Project Structure
@@ -55,7 +65,8 @@ backend_demo/
 │   └── main_orm.py            # App entry point — creates FastAPI instance, mounts routers
 ├── routes/
 │   ├── posts.py               # /posts CRUD endpoints (APIRouter)
-│   └── users.py               # /users registration & lookup (APIRouter)
+│   ├── users.py               # /users registration & lookup (APIRouter)
+│   └── auth.py                # /login authentication (APIRouter)
 ├── database/
 │   ├── database.py            # SQLAlchemy engine, ORM models (Post, User)
 │   └── schema.py              # Pydantic V2 request/response schemas
@@ -77,7 +88,8 @@ backend_demo/
 - **Duplicate-email guard** — `create_user()` catches the unique-constraint violation and returns `None`, which the route converts into a 400 response.
 - **EmailStr validation** — the `UserCreate` schema uses `pydantic[email]` to reject malformed email addresses at the request level.
 - **Safe response model** — `UserSent` omits the `password` field so it is never leaked in API responses.
-- **Password hashing** — passwords are hashed via `utils/hash.py` before being stored.
+- **Password hashing** — passwords are hashed with **bcrypt** via `utils/hash.py` (passlib) before being stored. Always use `hash_password()` — never Python's built-in `hash()`, which returns a non-cryptographic integer.
+- **Password verification** — `verify_password()` uses `pwd_context.verify()` to compare, which correctly extracts the bcrypt salt. Direct string comparison does not work because bcrypt produces a different hash each time.
 
 ---
 
@@ -94,3 +106,4 @@ See [`requirements.txt`](requirements.txt):
 | `uvicorn` | ASGI server |
 | `python-dotenv` | `.env` loading |
 | `SQLAlchemy` | ORM & database engine |
+| `passlib[bcrypt]` | Password hashing (bcrypt) |
