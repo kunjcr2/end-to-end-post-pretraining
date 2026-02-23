@@ -1,11 +1,15 @@
 # Inference
 torch
 transformers
-vllm
 
-# API
 fastapi
-uvicorn
 pydantic
 psycopg2
-dotenv
+uvicorn
+python-dotenv
+SQLAlchemy
+pydantic[email]
+passlib[bcrypt]
+PyJWT
+
+vllm

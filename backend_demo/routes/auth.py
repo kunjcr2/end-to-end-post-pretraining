@@ -15,6 +15,7 @@ from fastapi import APIRouter, status, HTTPException
 import backend_demo.utils.query_db as db
 from backend_demo.database.schema import UserSent, UserCreate
 from backend_demo.utils.hash import verify_password
+from backend_demo.utils.OAuth2 import create_access_token
 
 router = APIRouter(tags=["Authentication"])
 
@@ -29,4 +30,6 @@ def login(creds: UserCreate):
     if verify_password(creds.password, user.password) is False:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
-    return {"token": user.password}
+    encoded_jwt = create_access_token(user)
+
+    return {"token": encoded_jwt}

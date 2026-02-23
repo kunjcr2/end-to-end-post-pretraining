@@ -1,8 +1,0 @@
-fastapi
-pydantic
-psycopg2
-uvicorn
-python-dotenv
-SQLAlchemy
-pydantic[email]
-passlib[bcrypt]

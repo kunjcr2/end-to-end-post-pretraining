@@ -111,13 +111,22 @@ def create_user(user: UserCreate):
 
         return new_user
         
-def get_user_by_email(user: UserCreate):
+def get_user_by_id(id: int):
     """Look up a user by email using select().where() — not session.get(),
     which only works for primary-key lookups.
-    Returns the User ORM object or None if not found.
+    Returns the User ORM object or None if not found.`
     """
     with Session(_engine, expire_on_commit=False) as session:
-        stmt = select(User).where(User.email == user.email)
+        stmt = select(User).where(User.id == id)
+        user = session.execute(stmt).scalars().first()
+        if user is None:
+            return None
+
+        return user
+    
+def get_user_by_email(creds: UserCreate):
+    with Session(_engine, expire_on_commit=False) as session:
+        stmt = select(User).where(User.email == creds.email)
         user = session.execute(stmt).scalars().first()
         if user is None:
             return None

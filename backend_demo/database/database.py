@@ -35,6 +35,15 @@ class Post(_Base):
     def __repr__(self):
         return f"Post(id={self.id}, title='{self.title}', content='{self.content}', published={self.published}, created_at={self.created_at})"
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "content": self.content,
+            "published": self.published,
+            "created_at": self.created_at
+        }
+
 class User(_Base):
     __tablename__ = "users"
 
@@ -45,6 +54,14 @@ class User(_Base):
 
     def __repr__(self):
         return f"User(id={self.id}, email='{self.email}', created_at={self.created_at})"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "password": self.password,
+            "created_at": self.created_at
+        }
 
 _engine = create_engine(URL.create(
     "postgresql+psycopg2",
