@@ -58,4 +58,7 @@ class UserSent(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[int] = None
-    email: str = None
+
+class Token(BaseModel):
+    token: str
+    token_type: str

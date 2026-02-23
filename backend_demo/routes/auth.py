@@ -13,23 +13,26 @@
 from fastapi import APIRouter, status, HTTPException
 
 import backend_demo.utils.query_db as db
-from backend_demo.database.schema import UserSent, UserCreate
+from backend_demo.database.schema import UserSent, UserCreate, Token
 from backend_demo.utils.hash import verify_password
 from backend_demo.utils.OAuth2 import create_access_token
 
 router = APIRouter(tags=["Authentication"])
 
 # Authenticate a user — looks up by email, verifies bcrypt-hashed password
-@router.post("/login", status_code=status.HTTP_200_OK)
+@router.post("/login", status_code=status.HTTP_200_OK, response_model=Token)
 def login(creds: UserCreate):
     
     user = db.get_user_by_email(creds)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
     
     if verify_password(creds.password, user.password) is False:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid credentials")
     
     encoded_jwt = create_access_token(user)
-
-    return {"token": encoded_jwt}
+    
+    return Token(
+        token=encoded_jwt,
+        token_type="Bearer"
+    )
